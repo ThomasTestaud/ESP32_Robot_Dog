@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang='fr'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>RobotDog</title>
+</head>
+
+<body>
+    <div class='display'></div>
+    <div class='box-1'>
+        <div class='stick-1'></div>
+    </div>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        .display {
+            color: black;
+            width: 100%;
+            top: 30px;
+            text-align: center;
+            position: fixed;
+        }
+
+        .box-1 {
+            width: 400px;
+            height: 400px;
+            border: 2px solid black;
+            margin: 100px auto;
+            position: relative;
+        }
+
+        .stick-1 {
+            height: 50px;
+            width: 50px;
+            background-color: blue;
+            border-radius: 50%;
+            position: absolute;
+        }
+    </style>
+
+    <script>
+        let stick1 = document.querySelector('.stick-1');
+        let box1 = document.querySelector('.box-1');
+        let display = document.querySelector('.display');
+        let s1PositionX = 200;
+        let s1PositionY = 200;
+        let wWidth = window.innerWidth;
+
+        function refresh() {
+            stick1.style = `left: ${s1PositionX - 25}px; top: ${s1PositionY - 25}px;`;
+            display.innerHTML = `X: ${s1PositionX - 200}     Y: ${s1PositionY - 200}`;
+        }
+        refresh();
+
+        //DESKTOP
+        function followMouse(event) {
+            s1PositionX = event.clientX - (wWidth / 2 - 200);
+            s1PositionY = event.clientY - 100;
+            refresh();
+        }
+
+        stick1.addEventListener('mousedown', function (event) {
+            box1.addEventListener('mousemove', followMouse);
+        });
+
+        window.addEventListener('mouseup', function (event) {
+            box1.removeEventListener('mousemove', followMouse);
+            s1PositionX = 200;
+            s1PositionY = 200;
+            refresh();
+        });
+
+        //PHONE
+        function followTouch(event) {
+            event.preventDefault();
+            var touch = event.targetTouches[0];
+            s1PositionX = touch.pageX - (wWidth / 2 - 200);
+            s1PositionY = touch.pageY - 100;
+            refresh();
+        }
+
+        stick1.addEventListener('touchstart', function (event) {
+            box1.addEventListener('touchmove', followTouch);
+        });
+
+        window.addEventListener('touchend', function (event) {
+            box1.removeEventListener('touchmove', followTouch);
+            s1PositionX = 200;
+            s1PositionY = 200;
+            refresh();
+        });
+
+        //AJAX
+        function sendAjaxRequest(pos) {
+            $.ajax({
+                url: '/',
+                data: { value: pos },
+                type: 'GET',
+                timeout: 1000,
+                headers: { Connection: 'close' },
+                success: function () {
+                    console.log(`Sent servo position ${pos} to server`);
+                }, error: function (xhr, status, error) {
+                    console.log(`Error sending servo position: error`);
+                }
+            });
+        }
+
+        setInterval(function () {
+            sendAjaxRequest(s1PositionY);
+        }, 1000);
+
+    </script>
+
+</body>
+
+</html>
