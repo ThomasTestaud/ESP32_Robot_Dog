@@ -6,12 +6,29 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>RobotDog</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 
 <body>
     <div class='display'></div>
     <div class='box-1'>
+        <div class="line1 line"></div>
+        <div class="line2 line"></div>
+        <div class="line3 line"></div>
+        <div class="line4 line"></div>
         <div class='stick-1'></div>
+    </div>
+    <div class="buttons">
+        <div>
+            <button class="command-button">Walk</button>
+            <button class="command-button">Sit</button>
+            <button class="command-button">Lean</button>
+        </div>
+        <div>
+            <button class="command-button">Run</button>
+            <button class="command-button">Stand</button>
+            <button class="command-button">Lay</button>
+        </div>
     </div>
 
     <style>
@@ -19,8 +36,10 @@
         body {
             height: 100%;
             margin: 0;
+            font-family: sans-serif;
             color: white;
             font-family: sans-serif;
+            background-color: rgb(255, 208, 0);
         }
 
         .display {
@@ -32,11 +51,13 @@
         }
 
         .box-1 {
-            width: 400px;
-            height: 400px;
+            width: 300px;
+            height: 300px;
+            border-radius: 3px;
             border: 2px solid black;
-            margin: 100px auto;
+            margin: 100px auto 10px;
             position: relative;
+            background-color: rgba(212, 212, 212, 0.762);
         }
 
         .stick-1 {
@@ -46,37 +67,107 @@
             border-radius: 50%;
             position: absolute;
         }
+
+        .line {
+            position: absolute;
+            border: 1px dashed grey;
+            opacity: 0.6;
+        }
+
+        .line1 {
+            height: 300px;
+            top: 0px;
+            left: 100px;
+        }
+
+        .line2 {
+            height: 300px;
+            top: 0px;
+            left: 200px;
+        }
+
+        .line3 {
+            width: 300px;
+            top: 100px;
+            left: 0px;
+        }
+
+        .line4 {
+            width: 300px;
+            top: 200px;
+            left: 0px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .buttons>div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            background-color: #49c743;
+            border-radius: 3px;
+            border: 2px solid rgb(0, 0, 0);
+            height: 50px;
+            width: 143px;
+            margin: 10px;
+            color: white;
+            font-weight: 900;
+            font-size: 25px;
+        }
+
+        .activated {
+            background-color: #ff3131;
+        }
     </style>
 
     <script>
+
+        /////////////////////////////JOYSTICK PROGRAM//////////////////////////////
         let stick1 = document.querySelector('.stick-1');
         let box1 = document.querySelector('.box-1');
         let display = document.querySelector('.display');
-        let s1PositionX = 200;
-        let s1PositionY = 200;
+        let centerPosition = 150;
+        let s1PositionX = centerPosition;
+        let s1PositionY = centerPosition;
         let wWidth = window.innerWidth;
+        let interval;
 
         function refresh() {
             stick1.style = `left: ${s1PositionX - 25}px; top: ${s1PositionY - 25}px;`;
-            display.innerHTML = `X: ${s1PositionX - 200}     Y: ${s1PositionY - 200}`;
+            display.innerHTML = `X: ${s1PositionX - centerPosition}     Y: ${s1PositionY - centerPosition}`;
         }
         refresh();
 
         //DESKTOP
         function followMouse(event) {
-            s1PositionX = event.clientX - (wWidth / 2 - 200);
+            s1PositionX = event.clientX - (wWidth / 2 - 150);
             s1PositionY = event.clientY - 100;
             refresh();
         }
 
         stick1.addEventListener('mousedown', function (event) {
             box1.addEventListener('mousemove', followMouse);
+            clearInterval(interval);
         });
 
         window.addEventListener('mouseup', function (event) {
             box1.removeEventListener('mousemove', followMouse);
-            s1PositionX = 200;
-            s1PositionY = 200;
+            interval = setInterval(() => {
+                if (s1PositionX > centerPosition) {
+                    s1PositionX--;
+                } else if (s1PositionX < centerPosition) {
+                    s1PositionX++;
+                } else {
+                    clearInterval(interval);
+                }
+                refresh();
+                console.log('run');
+            }, 3);
             refresh();
         });
 
@@ -84,29 +175,60 @@
         function followTouch(event) {
             event.preventDefault();
             var touch = event.targetTouches[0];
-            s1PositionX = touch.pageX - (wWidth / 2 - 200);
+            s1PositionX = touch.pageX - (wWidth / 2 - 150);
             s1PositionY = touch.pageY - 100;
             refresh();
         }
 
         stick1.addEventListener('touchstart', function (event) {
             box1.addEventListener('touchmove', followTouch);
+            clearInterval(interval);
         });
 
         window.addEventListener('touchend', function (event) {
             box1.removeEventListener('touchmove', followTouch);
-            s1PositionX = 200;
-            s1PositionY = 200;
+            interval = setInterval(() => {
+                if (s1PositionX > centerPosition + 1) {
+                    s1PositionX--;
+                } else if (s1PositionX < centerPosition - 1) {
+                    s1PositionX++;
+                } else {
+                    clearInterval(interval);
+                }
+                refresh();
+                console.log('run');
+            }, 3);
             refresh();
         });
 
+        /////////////////////////////OUTPUT JOYSTICK//////////////////////////////
+
+        let outputJoystickX = s1PositionX;
+        let outputJoystickY = s1PositionY * -1;
+
+        let AL1;
+        let AL2;
+
+        /////////////////////////////BUTTON PROGRAM//////////////////////////////
+
+        commandButtons = document.querySelectorAll('.command-button');
+        commandButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                commandButtons.forEach(function (btn) {
+                    btn.classList.remove('activated');
+                });
+                button.classList.toggle('activated');
+            })
+        });
+
         //AJAX
+
         function sendAjaxRequest(pos) {
             $.ajax({
                 url: '/',
                 data: { value: pos },
                 type: 'GET',
-                timeout: 1000,
+                timeout: 500,
                 headers: { Connection: 'close' },
                 success: function () {
                     console.log(`Sent servo position ${pos} to server`);
